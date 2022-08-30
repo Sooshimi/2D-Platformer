@@ -65,7 +65,7 @@ public class player_movement : MonoBehaviour
         {
             if (horizontalInput == 0)
             {
-                body.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 10, 0); 
+                body.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 10, 0); //Mathf gets the sign of the variable (+ or -)
                 transform.localScale = new Vector3(-Mathf.Sign(transform.localScale.x), transform.localScale.y, transform.localScale.z); // flips sprite direction
             }
             else
@@ -73,10 +73,6 @@ public class player_movement : MonoBehaviour
 
             wallJumpCooldown = 0;
         }
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
     }
 
     private bool isGrounded()
@@ -88,5 +84,10 @@ public class player_movement : MonoBehaviour
     {
         RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0, new Vector2(transform.localScale.x, 0), 0.1f, wallLayer);
         return raycastHit.collider != null;
+    }
+
+    public bool canAttack()
+    {
+        return horizontalInput == 0 && isGrounded() && !onWall();
     }
 }
