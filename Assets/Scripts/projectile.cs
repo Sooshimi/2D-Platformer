@@ -24,7 +24,7 @@ public class projectile : MonoBehaviour
 
         // Check duration of a fireball being active
         lifetime += Time.deltaTime;
-        if (lifetime > 1) gameObject.SetActive(false);
+        if (lifetime > 2) gameObject.SetActive(false);
     }
 
     // Check to see if projectile hits another object
