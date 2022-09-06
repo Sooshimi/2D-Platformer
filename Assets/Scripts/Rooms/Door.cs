@@ -11,9 +11,18 @@ public class Door : MonoBehaviour
         if (collision.tag == "Player")
         {
             if (collision.transform.position.x < transform.position.x)
+            {
                 cam.MoveToNewRoom(nextRoom);
+                nextRoom.GetComponent<Room>().ActivateRoom(true); // activates the entered room
+                previousRoom.GetComponent<Room>().ActivateRoom(false); // deactivates the previous room
+            }
             else
+            {
                 cam.MoveToNewRoom(previousRoom);
+                previousRoom.GetComponent<Room>().ActivateRoom(true); // activates the entered room
+                nextRoom.GetComponent<Room>().ActivateRoom(false); // deactivates the previous room
+            }
+                
         }
     }
 }
