@@ -33,6 +33,9 @@ public class projectile : MonoBehaviour
         hit = true;
         boxCollider.enabled = false;
         anim.SetTrigger("explode");
+
+        if (collision.tag == "Enemy")
+            collision.GetComponent<Health>().TakeDamage(1);
     }
 
     // Use method everytime player shoots, goes left and right directions

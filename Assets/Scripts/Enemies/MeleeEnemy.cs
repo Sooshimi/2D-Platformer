@@ -2,19 +2,29 @@ using UnityEngine;
 
 public class MeleeEnemy : MonoBehaviour
 {
+    [Header("Attack Parameters")]
     [SerializeField] private float attackCooldown;
     [SerializeField] private float range;
-    [SerializeField] private float colliderDistance;
     [SerializeField] private int damage;
+
+    [Header("Collider Parameters")]
+    [SerializeField] private float colliderDistance;
     [SerializeField] private BoxCollider2D boxCollider;
+
+    [Header("Player Layer")]
     [SerializeField] private LayerMask playerLayer;
     private float cooldownTimer = Mathf.Infinity; // lets enemy attack straight away
+
+    // References
     private Animator anim; // ref to animator to activate attack animation
     private Health playerHealth;
+
+    private EnemyPatrol enemyPatrol;
 
     private void Awake()
     {
         anim = GetComponent<Animator>();
+        enemyPatrol = GetComponentInParent<EnemyPatrol>();
     }
 
     private void Update()
@@ -31,6 +41,11 @@ public class MeleeEnemy : MonoBehaviour
                 anim.SetTrigger("meleeAttack");
             }
         }
+
+        // if enemy sees player, stop patrolling, otherwise keep patrolling
+        // this fixes enemy not being able to attack whilst moving in patrol route
+        if (enemyPatrol != null)
+            enemyPatrol.enabled = !PlayerInSight();
     }
 
     private bool PlayerInSight()
