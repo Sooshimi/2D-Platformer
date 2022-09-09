@@ -11,7 +11,9 @@ public class SpikeHead : EnemyDamage
     private Vector3[] directions = new Vector3[4]; // spikehead checks 4 directions
     private float checkTimer;
     private bool attacking;
-    
+
+    [Header("SFX")]
+    [SerializeField] private AudioClip impactSound;
 
     // OnEnable function gets called whenever an object gets activated
     private void OnEnable()
@@ -67,6 +69,7 @@ public class SpikeHead : EnemyDamage
     // handle collisions
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        SoundManager.instance.PlaySound(impactSound);
         base.OnTriggerEnter2D(collision);
         Stop(); // stop spikehead once it hits something
     }

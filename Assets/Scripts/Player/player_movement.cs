@@ -12,6 +12,9 @@ public class player_movement : MonoBehaviour
     private float wallJumpCooldown;
     private float horizontalInput;
 
+    [Header("SFX")]
+    [SerializeField] private AudioClip jumpSound;
+
     private void Awake()
     {
         //Grab references for rigidbody and animator from object
@@ -48,7 +51,14 @@ public class player_movement : MonoBehaviour
                 body.gravityScale = 7;
 
             if (Input.GetKey(KeyCode.Space))
+            {
                 Jump();
+
+                // play jump sound only once when jump key is pressed (technically it's pressed multiple times)
+                if (Input.GetKeyDown(KeyCode.Space) && isGrounded())
+                    SoundManager.instance.PlaySound(jumpSound);
+            }
+                
         }
         else
             wallJumpCooldown += Time.deltaTime;
