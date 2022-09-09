@@ -14,6 +14,10 @@ public class Health : MonoBehaviour
     [SerializeField] private int numberOfFlashes;
     private SpriteRenderer spriteRend; // grabs ref to SpriteRenderer component
 
+    [Header("Components")]
+    [SerializeField] private Behaviour[] components;
+    private bool invulnerable;
+
     private void Awake()
     {
         currentHealth = startingHealth;
@@ -23,6 +27,7 @@ public class Health : MonoBehaviour
 
     public void TakeDamage(float _damage)
     {
+        if (invulnerable) return;
         currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
 
         if (currentHealth > 0)
@@ -40,16 +45,22 @@ public class Health : MonoBehaviour
             {
                 anim.SetTrigger("die");
 
+                // deactovate all attached component class
+                foreach (Behaviour component in components)
+                    component.enabled = false;
+
+                // the above foreach loop does the same as the below code
+
                 // Player 
-                if(GetComponent<player_movement>() != null)
-                    GetComponent<player_movement>().enabled = false; // cannot move when dead
+                //if (GetComponent<player_movement>() != null)
+                //    GetComponent<player_movement>().enabled = false; // cannot move when dead
 
                 // Enemy
-                if (GetComponentInParent<EnemyPatrol>() != null)
-                    GetComponentInParent<EnemyPatrol>().enabled = false;
+                //if (GetComponentInParent<EnemyPatrol>() != null)
+                //    GetComponentInParent<EnemyPatrol>().enabled = false;
 
-                if (GetComponent<MeleeEnemy>() != null)
-                    GetComponent<MeleeEnemy>().enabled = false;
+                //if (GetComponent<MeleeEnemy>() != null)
+                //    GetComponent<MeleeEnemy>().enabled = false;
 
                 dead = true;
             }
@@ -64,6 +75,7 @@ public class Health : MonoBehaviour
 
     private IEnumerator Invulnerability()
     {
+        invulnerable = true;
         Physics2D.IgnoreLayerCollision(8, 9, true); // 8 and 9 are the player and enemy layers, respectively
         for (int i = 0; i < numberOfFlashes; i++)
         {
@@ -72,6 +84,12 @@ public class Health : MonoBehaviour
             spriteRend.color = Color.white;
             yield return new WaitForSeconds(iFramesDuration / (numberOfFlashes * 2));
         }
-        Physics2D.IgnoreLayerCollision(8, 9, false); 
+        Physics2D.IgnoreLayerCollision(8, 9, false);
+        invulnerable = false;
+    }
+
+    private void Deactivate()
+    {
+        gameObject.SetActive(false);
     }
 }
