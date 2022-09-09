@@ -2,18 +2,34 @@ using UnityEngine;
 
 public class player_movement : MonoBehaviour
 {
+    [Header("Movement Parameters")]
     [SerializeField] private float speed;
     [SerializeField] private float jumpPower;
+
+    [Header("Coyote Time")]
+    [SerializeField]  private float coyoteTime; // how long the player can air hang before jumping
+    private float coyoteCounter; // how much time passed since player ran off edge of object
+
+    [Header("Multiple Jumps")]
+    [SerializeField] private int extraJumps;
+    private int jumpCounter;
+
+    [Header("Wall Jumping")]
+    [SerializeField] private float wallJumpX;
+    [SerializeField] private float wallJumpY;
+
+    [Header("Layers")]
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask wallLayer;
+
+    [Header("SFX")]
+    [SerializeField] private AudioClip jumpSound;
+
     private Rigidbody2D body;
     private Animator anim;
     private BoxCollider2D boxCollider;
     private float wallJumpCooldown;
     private float horizontalInput;
-
-    [Header("SFX")]
-    [SerializeField] private AudioClip jumpSound;
 
     private void Awake()
     {
@@ -37,52 +53,69 @@ public class player_movement : MonoBehaviour
         anim.SetBool("run", horizontalInput != 0);
         anim.SetBool("grounded", isGrounded());
 
-        //Wall jump logic
-        if (wallJumpCooldown > 0.2f)
+        // jump
+        if (Input.GetKeyDown(KeyCode.Space))
+            Jump();
+
+        // adjustable jump height
+        if (Input.GetKeyUp(KeyCode.Space) && body.velocity.y > 0)
+            body.velocity = new Vector2(body.velocity.y, body.velocity.y / 2);
+
+        if (onWall())
         {
-            body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
-
-            if (onWall() && !isGrounded())
-            {
-                body.gravityScale = 3;
-                body.velocity = Vector2.zero;
-            }
-            else
-                body.gravityScale = 7;
-
-            if (Input.GetKey(KeyCode.Space))
-            {
-                Jump();
-
-                // play jump sound only once when jump key is pressed (technically it's pressed multiple times)
-                if (Input.GetKeyDown(KeyCode.Space) && isGrounded())
-                    SoundManager.instance.PlaySound(jumpSound);
-            }
-                
+            body.gravityScale = 0;
+            body.velocity = Vector2.zero;
         }
         else
-            wallJumpCooldown += Time.deltaTime;
+        {
+            body.gravityScale = 7;
+            body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
+
+            if (isGrounded())
+            {
+                coyoteCounter = coyoteTime; // reset coyote counter when on ground
+                jumpCounter = extraJumps; // resets jump counter
+            }
+            else
+                coyoteCounter -= Time.deltaTime;
+        }
     }
 
     private void Jump()
     {
-        if (isGrounded())
-        {
-            body.velocity = new Vector2(body.velocity.x, jumpPower);
-            anim.SetTrigger("jump");
-        }
-        else if (onWall() && !isGrounded())
-        {
-            if (horizontalInput == 0)
-            {
-                body.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 10, 0); //Mathf gets the sign of the variable (+ or -)
-                transform.localScale = new Vector3(-Mathf.Sign(transform.localScale.x), transform.localScale.y, transform.localScale.z); // flips sprite direction
-            }
-            else
-                body.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 3, 10); // pushes character off wall and upwards
+        if (coyoteCounter <= 0 && !onWall() && jumpCounter <= 0) return; // don't do anything
+        // isGrounded() not checked here because of the condition in Update()
 
-            wallJumpCooldown = 0;
+        SoundManager.instance.PlaySound(jumpSound);
+
+        if (onWall())
+            WallJump();
+        else
+        {
+            // normal jump
+            if (isGrounded())
+                body.velocity = new Vector2(body.velocity.x, jumpPower);
+            else
+            {
+                // if not grounded and coyote counter > 0, then do a coyote jump
+                if (coyoteCounter > 0)
+                    body.velocity = new Vector2(body.velocity.x, jumpPower);
+                else
+                {
+                    if (jumpCounter > 0)
+                        body.velocity = new Vector2(body.velocity.x, jumpPower);
+                        jumpCounter--;
+                }
+            }
+            coyoteCounter = 0; // avoid double jumps
         }
+
+    }
+
+    private void WallJump()
+    {
+        body.AddForce(new Vector2(-Mathf.Sign(transform.localScale.x) * wallJumpX, wallJumpY));
+        wallJumpCooldown = 0;
     }
 
     private bool isGrounded()

@@ -45,11 +45,13 @@ public class Health : MonoBehaviour
             // Player dead
             if (!dead)
             {
-                anim.SetTrigger("die");
-
-                // deactovate all attached component class
+                // deactivate all attached component class
                 foreach (Behaviour component in components)
                     component.enabled = false;
+
+                //force grounded to be true, so if player dies midair, the death animation doesn't get stuck
+                anim.SetBool("grounded", true); 
+                anim.SetTrigger("die");
 
                 // the above foreach loop does the same as the below code
 
