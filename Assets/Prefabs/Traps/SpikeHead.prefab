@@ -147,7 +147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 1
-  speed: 2
+  speed: 2.5
   range: 6
   checkDelay: 1
   playerLayer:
